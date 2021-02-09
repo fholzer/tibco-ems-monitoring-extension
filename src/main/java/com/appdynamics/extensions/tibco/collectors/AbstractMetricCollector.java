@@ -55,33 +55,33 @@ public abstract class AbstractMetricCollector implements Runnable {
 
     boolean shouldMonitorDestination(String destName, List<Pattern> includePatterns, boolean showSystem, boolean showTemp, boolean showDynamic, DestinationType destinationType, Logger logger) {
 
-        logger.info("Checking includes and excludes for " + destinationType.getType() + " with name " + destName);
+        logger.debug("Checking includes and excludes for " + destinationType.getType() + " with name " + destName);
 
         try {
             if (destName.startsWith("$TMP$.") && !showTemp) {
-                logger.info("Skipping temporary " + destinationType.getType() + " '" + destName + "'");
+                logger.debug("Skipping temporary " + destinationType.getType() + " '" + destName + "'");
                 return false;
             }
 
             if (destName.startsWith("$sys.") && !showSystem) {
-                logger.info("Skipping system " + destinationType.getType() + " '" + destName + "'");
+                logger.debug("Skipping system " + destinationType.getType() + " '" + destName + "'");
                 return false;
             }
 
             if(destinationType != null && destinationCache != null) {
                 DestinationInfo di = destinationCache.get(destName, destinationType);
                 if(!di.isStatic() && !showDynamic) {
-                    logger.info("Skipping dynamic " + destinationType.getType() + " '" + destName);
+                    logger.debug("Skipping dynamic " + destinationType.getType() + " '" + destName + "'");
                     return false;
                 }
             }
 
             if (includePatterns != null && includePatterns.size() > 0) {
-                logger.info("Using patterns to include [" + includePatterns + "] to filter");
+                logger.debug("Using patterns to include [" + includePatterns + "] to filter");
                 for (Pattern patternToInclude : includePatterns) {
                     Matcher matcher = patternToInclude.matcher(destName);
                     if (matcher.matches()) {
-                        logger.info(String.format("Including '%s' '%s' due to include pattern '%s'",
+                        logger.debug(String.format("Including '%s' '%s' due to include pattern '%s'",
                                 destinationType.getType(), destName, patternToInclude.pattern()));
                         return true;
                     }
