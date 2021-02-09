@@ -9,6 +9,7 @@
 package com.appdynamics.extensions.tibco.collectors;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache;
 import com.appdynamics.extensions.tibco.metrics.Metric;
 import com.appdynamics.extensions.tibco.metrics.Metrics;
 import com.google.common.base.Strings;
@@ -30,9 +31,9 @@ public class ServerMetricCollector extends AbstractMetricCollector {
     private final Phaser phaser;
     private List<com.appdynamics.extensions.metrics.Metric> collectedMetrics;
 
-    public ServerMetricCollector(TibjmsAdmin conn, boolean showSystem,
-                                 boolean showTemp, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics) {
-        super(conn, null, showSystem, showTemp, metrics, metricPrefix);
+    public ServerMetricCollector(TibjmsAdmin conn, TibcoEMSDestinationCache destinationCache, boolean showSystem,
+                                 boolean showTemp, boolean showDynamic, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics) {
+        super(conn, destinationCache, null, showSystem, showTemp, showDynamic, metrics, metricPrefix);
         this.phaser = phaser;
         this.phaser.register();
         this.collectedMetrics = collectedMetrics;

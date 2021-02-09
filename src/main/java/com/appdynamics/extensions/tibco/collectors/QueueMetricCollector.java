@@ -9,17 +9,18 @@
 package com.appdynamics.extensions.tibco.collectors;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
-import com.appdynamics.extensions.tibco.TibcoEMSMetricFetcher;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache.DestinationType;
 import com.appdynamics.extensions.tibco.metrics.Metric;
 import com.appdynamics.extensions.tibco.metrics.Metrics;
 import com.google.common.base.Strings;
 import com.tibco.tibjms.admin.QueueInfo;
 import com.tibco.tibjms.admin.TibjmsAdmin;
-import com.tibco.tibjms.admin.TibjmsAdminException;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Phaser;
@@ -35,9 +36,9 @@ public class QueueMetricCollector extends AbstractMetricCollector {
     private List<com.appdynamics.extensions.metrics.Metric> collectedMetrics;
 
 
-    public QueueMetricCollector(TibjmsAdmin conn, List<Pattern> includePatterns, boolean showSystem,
-                                boolean showTemp, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics) {
-        super(conn, includePatterns, showSystem, showTemp, metrics, metricPrefix);
+    public QueueMetricCollector(TibjmsAdmin conn, TibcoEMSDestinationCache destinationCache, List<Pattern> includePatterns, boolean showSystem,
+                                boolean showTemp, boolean showDynamic, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics) {
+        super(conn, destinationCache, includePatterns, showSystem, showTemp, showDynamic, metrics, metricPrefix);
         this.phaser = phaser;
         this.phaser.register();
         this.collectedMetrics = collectedMetrics;
@@ -50,21 +51,15 @@ public class QueueMetricCollector extends AbstractMetricCollector {
         }
 
         try {
-            QueueInfo[] queueInfos = conn.getQueuesStatistics();
+            Collection<QueueInfo> queueInfos = destinationCache.getAllQueues();
 
-            if (queueInfos == null) {
-                logger.warn("Unable to get queue statistics");
-            } else {
-                for (QueueInfo queueInfo : queueInfos) {
-                    if (shouldMonitorDestination(queueInfo.getName(), includePatterns, showSystem, showTemp, TibcoEMSMetricFetcher.DestinationType.QUEUE, logger)) {
-                        logger.info("Publishing metrics for queue " + queueInfo.getName());
-                        List<com.appdynamics.extensions.metrics.Metric> queueInfoMetrics = getQueueInfo(queueInfo, metrics);
-                        collectedMetrics.addAll(queueInfoMetrics);
-                    }
+            for (QueueInfo queueInfo : queueInfos) {
+                if (shouldMonitorDestination(queueInfo.getName(), DestinationType.QUEUE, logger)) {
+                    logger.info("Publishing metrics for queue " + queueInfo.getName());
+                    List<com.appdynamics.extensions.metrics.Metric> queueInfoMetrics = getQueueInfo(queueInfo, metrics);
+                    collectedMetrics.addAll(queueInfoMetrics);
                 }
             }
-        } catch (TibjmsAdminException e) {
-            logger.error("Error while collecting queue metrics", e);
         } finally {
             logger.debug("QueueMetricCollector Phaser arrived");
             phaser.arriveAndDeregister();

@@ -9,6 +9,8 @@
 package com.appdynamics.extensions.tibco.collectors;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache.DestinationType;
 import com.appdynamics.extensions.tibco.TibcoEMSMetricFetcher;
 import com.appdynamics.extensions.tibco.metrics.Metric;
 import com.appdynamics.extensions.tibco.metrics.Metrics;
@@ -36,9 +38,9 @@ public class DurableMetricCollector extends AbstractMetricCollector {
     private Map<String, String> queueTopicMetricPrefixes;
 
 
-    public DurableMetricCollector(TibjmsAdmin conn, List<Pattern> includePatterns, boolean showSystem,
-                                  boolean showTemp, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics, Map<String, String> queueTopicMetricPrefixes) {
-        super(conn, includePatterns, showSystem, showTemp, metrics, metricPrefix);
+    public DurableMetricCollector(TibjmsAdmin conn, TibcoEMSDestinationCache destinationCache, List<Pattern> includePatterns, boolean showSystem,
+                                  boolean showTemp, boolean showDynamic, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics, Map<String, String> queueTopicMetricPrefixes) {
+        super(conn, destinationCache, includePatterns, showSystem, showTemp, showDynamic, metrics, metricPrefix);
         this.phaser = phaser;
         this.phaser.register();
         this.collectedMetrics = collectedMetrics;
@@ -58,7 +60,7 @@ public class DurableMetricCollector extends AbstractMetricCollector {
                 logger.warn("Unable to get durable metrics");
             } else {
                 for (DurableInfo durableInfo : durables) {
-                    if (shouldMonitorDestination(durableInfo.getDurableName(), includePatterns, showSystem, showTemp, TibcoEMSMetricFetcher.DestinationType.DURABLE, logger)) {
+                    if (shouldMonitorDestination(durableInfo.getDurableName(), DestinationType.TOPIC, logger)) {
                         logger.info("Publishing metrics for durable " + durableInfo.getDurableName());
                         List<com.appdynamics.extensions.metrics.Metric> durableInfoMetrics = getDurableInfo(durableInfo, metrics);
                         collectedMetrics.addAll(durableInfoMetrics);

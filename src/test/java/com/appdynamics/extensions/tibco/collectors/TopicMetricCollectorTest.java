@@ -101,7 +101,7 @@ public class TopicMetricCollectorTest {
 
 
         String metricPrefix = "Custom Metrics|EMS";
-        TopicMetricCollector topicMetricCollector = new TopicMetricCollector(tibjmsAdmin, Lists.newArrayList(includeAllPattern), false, false,
+        TopicMetricCollector topicMetricCollector = new TopicMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeAllPattern), false, false, false,
                 metrics, metricPrefix, phaser, collectedMetrics);
         topicMetricCollector.run();
 
@@ -180,7 +180,7 @@ public class TopicMetricCollectorTest {
 
 
         String metricPrefix = "Custom Metrics|EMS";
-        TopicMetricCollector topicMetricCollector = new TopicMetricCollector(tibjmsAdmin, Lists.newArrayList(includeOnlyTopic2Pattern), false, false,
+        TopicMetricCollector topicMetricCollector = new TopicMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeOnlyTopic2Pattern), false, false, false,
                 metrics, metricPrefix, phaser, collectedMetrics);
         topicMetricCollector.run();
 

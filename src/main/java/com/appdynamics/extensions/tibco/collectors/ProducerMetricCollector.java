@@ -9,6 +9,8 @@
 package com.appdynamics.extensions.tibco.collectors;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache.DestinationType;
 import com.appdynamics.extensions.tibco.TibcoEMSMetricFetcher;
 import com.appdynamics.extensions.tibco.metrics.Metric;
 import com.appdynamics.extensions.tibco.metrics.Metrics;
@@ -37,9 +39,9 @@ public class ProducerMetricCollector extends AbstractMetricCollector {
     private Boolean displayDynamicIdsInMetricPath;
 
 
-    public ProducerMetricCollector(TibjmsAdmin conn, List<Pattern> includePatterns, boolean showSystem,
-                                   boolean showTemp, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics, Map<String, String> queueTopicMetricPrefixes, Boolean displayDynamicIdsInMetricPath) {
-        super(conn, includePatterns, showSystem, showTemp, metrics, metricPrefix);
+    public ProducerMetricCollector(TibjmsAdmin conn, TibcoEMSDestinationCache destinationCache, List<Pattern> includePatterns, boolean showSystem,
+                                   boolean showTemp, boolean showDynamic, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics, Map<String, String> queueTopicMetricPrefixes, Boolean displayDynamicIdsInMetricPath) {
+        super(conn, destinationCache, includePatterns, showSystem, showTemp, showDynamic, metrics, metricPrefix);
         this.phaser = phaser;
         this.phaser.register();
         this.collectedMetrics = collectedMetrics;
@@ -67,7 +69,7 @@ public class ProducerMetricCollector extends AbstractMetricCollector {
 
                 String destinationName = producerInfo.getDestinationName();
 
-                if (shouldMonitorDestination(destinationName, includePatterns, showSystem, showTemp, TibcoEMSMetricFetcher.DestinationType.PRODUCER, logger)) {
+                if (shouldMonitorDestination(destinationName, DestinationType.byId(producerInfo.getDestinationType()), logger)) {
                     logger.info("Publishing metrics for producer " + destinationName);
                     List<com.appdynamics.extensions.metrics.Metric> producerInfoMetrics = getProducerInfo(producerInfo, thisPrefix);
                     collectedMetrics.addAll(producerInfoMetrics);

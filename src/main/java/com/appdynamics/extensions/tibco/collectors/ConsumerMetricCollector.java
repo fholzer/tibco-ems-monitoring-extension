@@ -9,6 +9,7 @@
 package com.appdynamics.extensions.tibco.collectors;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache;
 import com.appdynamics.extensions.tibco.TibcoEMSMetricFetcher;
 import com.appdynamics.extensions.tibco.metrics.Metric;
 import com.appdynamics.extensions.tibco.metrics.Metrics;
@@ -37,9 +38,9 @@ public class ConsumerMetricCollector extends AbstractMetricCollector {
     private Boolean displayDynamicIdsInMetricPath;
 
 
-    public ConsumerMetricCollector(TibjmsAdmin conn, List<Pattern> includePatterns, boolean showSystem,
-                                   boolean showTemp, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics, Map<String, String> queueTopicMetricPrefixes, Boolean displayDynamicIdsInMetricPath) {
-        super(conn, includePatterns, showSystem, showTemp, metrics, metricPrefix);
+    public ConsumerMetricCollector(TibjmsAdmin conn, TibcoEMSDestinationCache destinationCache, List<Pattern> includePatterns, boolean showSystem,
+                                   boolean showTemp, boolean showDynamic, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics, Map<String, String> queueTopicMetricPrefixes, Boolean displayDynamicIdsInMetricPath) {
+        super(conn, destinationCache, includePatterns, showSystem, showTemp, showDynamic, metrics, metricPrefix);
         this.phaser = phaser;
         this.phaser.register();
         this.collectedMetrics = collectedMetrics;
@@ -67,7 +68,7 @@ public class ConsumerMetricCollector extends AbstractMetricCollector {
 
                 String destinationName = consumerInfo.getDestinationName();
 
-                if (shouldMonitorDestination(destinationName, includePatterns, showSystem, showTemp, TibcoEMSMetricFetcher.DestinationType.CONSUMER, logger)) {
+                if (shouldMonitorDestination(destinationName, TibcoEMSDestinationCache.DestinationType.byId(consumerInfo.getDestinationType()), logger)) {
                     logger.info("Publishing metrics for consumer " + destinationName);
                     List<com.appdynamics.extensions.metrics.Metric> consumerInfoMetrics = getConsumerInfo(consumerInfo, thisPrefix);
                     collectedMetrics.addAll(consumerInfoMetrics);

@@ -96,7 +96,7 @@ public class ProducerMetricCollectorTest {
         when(statData2.getTotalMessages()).thenReturn(200l);
         when(statData2.getTotalBytes()).thenReturn(2000l);
 
-        ProducerMetricCollector producerMetricCollector = new ProducerMetricCollector(tibjmsAdmin, Lists.newArrayList(includeAllPattern), false, false, metrics, metricPrefix,
+        ProducerMetricCollector producerMetricCollector = new ProducerMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeAllPattern), false, false, false, metrics, metricPrefix,
                 phaser, collectedMetrics, queueTopicMetricPrefixes, displayDynamicIdsInMetricPath);
         producerMetricCollector.run();
 
@@ -161,7 +161,7 @@ public class ProducerMetricCollectorTest {
         when(statData2.getTotalMessages()).thenReturn(200l);
         when(statData2.getTotalBytes()).thenReturn(2000l);
 
-        ProducerMetricCollector producerMetricCollector = new ProducerMetricCollector(tibjmsAdmin, Lists.newArrayList(includeOnlyQueue1Pattern), false, false, metrics, metricPrefix,
+        ProducerMetricCollector producerMetricCollector = new ProducerMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeOnlyQueue1Pattern), false, false, false, metrics, metricPrefix,
                 phaser, collectedMetrics, queueTopicMetricPrefixes, displayDynamicIdsInMetricPath);
         producerMetricCollector.run();
 

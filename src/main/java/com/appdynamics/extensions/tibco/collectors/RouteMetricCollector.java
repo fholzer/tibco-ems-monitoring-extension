@@ -9,7 +9,7 @@
 package com.appdynamics.extensions.tibco.collectors;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
-import com.appdynamics.extensions.tibco.TibcoEMSMetricFetcher;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache;
 import com.appdynamics.extensions.tibco.metrics.Metric;
 import com.appdynamics.extensions.tibco.metrics.Metrics;
 import com.google.common.base.Strings;
@@ -35,9 +35,9 @@ public class RouteMetricCollector extends AbstractMetricCollector {
     private List<com.appdynamics.extensions.metrics.Metric> collectedMetrics;
 
 
-    public RouteMetricCollector(TibjmsAdmin conn, List<Pattern> includePatterns, boolean showSystem,
-                                boolean showTemp, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics) {
-        super(conn, includePatterns, showSystem, showTemp, metrics, metricPrefix);
+    public RouteMetricCollector(TibjmsAdmin conn, TibcoEMSDestinationCache destinationCache, List<Pattern> includePatterns, boolean showSystem,
+                                boolean showTemp, boolean showDynamic, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics) {
+        super(conn, destinationCache, includePatterns, showSystem, showTemp, showDynamic, metrics, metricPrefix);
         this.phaser = phaser;
         this.phaser.register();
         this.collectedMetrics = collectedMetrics;
@@ -56,7 +56,7 @@ public class RouteMetricCollector extends AbstractMetricCollector {
                 logger.warn("Unable to get route metrics");
             } else {
                 for (RouteInfo routeInfo : routes) {
-                    if (shouldMonitorDestination(routeInfo.getName(), includePatterns, showSystem, showTemp, TibcoEMSMetricFetcher.DestinationType.ROUTE, logger)) {
+                    if (shouldMonitorDestination(routeInfo.getName(), null, logger)) {
                         logger.info("Publishing metrics for route " + routeInfo.getName());
                         List<com.appdynamics.extensions.metrics.Metric> routeInfoMetrics = getRouteInfo(routeInfo, metrics);
                         collectedMetrics.addAll(routeInfoMetrics);

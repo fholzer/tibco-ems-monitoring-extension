@@ -27,8 +27,10 @@ import com.appdynamics.extensions.util.CryptoUtils;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.tibco.tibjms.TibjmsSSL;
+import com.tibco.tibjms.admin.QueueInfo;
 import com.tibco.tibjms.admin.TibjmsAdmin;
 import com.tibco.tibjms.admin.TibjmsAdminException;
+import com.tibco.tibjms.admin.TopicInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -196,6 +198,7 @@ public class TibcoEMSMetricFetcher implements AMonitorTaskRunnable {
 
         boolean showTemp = emsMetrics.isShowTemp();
         boolean showSystem = emsMetrics.isShowSystem();
+        boolean showDynamic = emsMetrics.isShowDynamic();
         List<String> includeQueues = (List) emsServer.get("includeQueues");
 
         List<String> includeTopics = (List) emsServer.get("includeTopics");
@@ -248,6 +251,16 @@ public class TibcoEMSMetricFetcher implements AMonitorTaskRunnable {
 
             Boolean displayDynamicIdsInMetricPath = (Boolean) configuration.getConfigYml().get("displayDynamicIdsInMetricPath");
 
+            TopicInfo topicInfos[] = tibjmsAdmin.getTopics();
+            QueueInfo queueInfos[] = tibjmsAdmin.getQueues();
+            if(topicInfos == null) {
+                logger.warn("Unable to get topic statistics");
+            }
+            if(queueInfos == null) {
+                logger.warn("Unable to get queue statistics");
+            }
+            TibcoEMSDestinationCache destinationCache = new TibcoEMSDestinationCache(tibjmsAdmin, topicInfos, queueInfos);
+
             for (Metrics metrics : allMetrics) {
 
                 String type = metrics.getType();
@@ -256,31 +269,31 @@ public class TibcoEMSMetricFetcher implements AMonitorTaskRunnable {
                 if (enabled) {
                     switch (DestinationType.byType(type)) {
                         case SERVER:
-                            ServerMetricCollector serverMetricCollector = new ServerMetricCollector(tibjmsAdmin, showSystem, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics);
+                            ServerMetricCollector serverMetricCollector = new ServerMetricCollector(tibjmsAdmin, destinationCache, showSystem, showTemp, showDynamic, metrics, fullMetricPrefix, phaser, collectedMetrics);
                             configuration.getContext().getExecutorService().execute(displayName + ": ServerMetricCollector", serverMetricCollector);
                             break;
                         case QUEUE:
-                            QueueMetricCollector queueMetricCollector = new QueueMetricCollector(tibjmsAdmin, includeQueuesPatterns, showSystem, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics);
+                            QueueMetricCollector queueMetricCollector = new QueueMetricCollector(tibjmsAdmin, destinationCache, includeQueuesPatterns, showSystem, showTemp, showDynamic, metrics, fullMetricPrefix, phaser, collectedMetrics);
                             configuration.getContext().getExecutorService().execute(displayName + ": QueueMetricCollector", queueMetricCollector);
                             break;
                         case TOPIC:
-                            TopicMetricCollector topicMetricCollector = new TopicMetricCollector(tibjmsAdmin, includeTopicsPatterns, showSystem, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics);
+                            TopicMetricCollector topicMetricCollector = new TopicMetricCollector(tibjmsAdmin, destinationCache, includeTopicsPatterns, showSystem, showTemp, showDynamic, metrics, fullMetricPrefix, phaser, collectedMetrics);
                             configuration.getContext().getExecutorService().execute(displayName + ": TopicMetricCollector", topicMetricCollector);
                             break;
                         case PRODUCER:
-                            ProducerMetricCollector producerMetricCollector = new ProducerMetricCollector(tibjmsAdmin, includeProducersPatterns, showSystem, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics, queueTopicMetricPrefixes, displayDynamicIdsInMetricPath);
+                            ProducerMetricCollector producerMetricCollector = new ProducerMetricCollector(tibjmsAdmin, destinationCache, includeProducersPatterns, showSystem, showDynamic, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics, queueTopicMetricPrefixes, displayDynamicIdsInMetricPath);
                             configuration.getContext().getExecutorService().execute(displayName + ": ProducerMetricCollector", producerMetricCollector);
                             break;
                         case CONSUMER:
-                            ConsumerMetricCollector consumerMetricCollector = new ConsumerMetricCollector(tibjmsAdmin, includeConsumersPatterns, showSystem, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics, queueTopicMetricPrefixes, displayDynamicIdsInMetricPath);
+                            ConsumerMetricCollector consumerMetricCollector = new ConsumerMetricCollector(tibjmsAdmin, destinationCache, includeConsumersPatterns, showSystem, showDynamic, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics, queueTopicMetricPrefixes, displayDynamicIdsInMetricPath);
                             configuration.getContext().getExecutorService().execute(displayName + ": ConsumerMetricCollector", consumerMetricCollector);
                             break;
                         case ROUTE:
-                            RouteMetricCollector routeMetricCollector = new RouteMetricCollector(tibjmsAdmin, includeRoutesPatterns, showSystem, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics);
+                            RouteMetricCollector routeMetricCollector = new RouteMetricCollector(tibjmsAdmin, destinationCache, includeRoutesPatterns, showSystem, showTemp, showDynamic, metrics, fullMetricPrefix, phaser, collectedMetrics);
                             configuration.getContext().getExecutorService().execute(displayName + ": RouteMetricCollector", routeMetricCollector);
                             break;
                         case DURABLE:
-                            DurableMetricCollector durableMetricCollector = new DurableMetricCollector(tibjmsAdmin, includeDurablesPatterns, showSystem, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics, queueTopicMetricPrefixes);
+                            DurableMetricCollector durableMetricCollector = new DurableMetricCollector(tibjmsAdmin, destinationCache, includeDurablesPatterns, showSystem, showDynamic, showTemp, metrics, fullMetricPrefix, phaser, collectedMetrics, queueTopicMetricPrefixes);
                             configuration.getContext().getExecutorService().execute(displayName + ": DurableMetricCollector", durableMetricCollector);
                             break;
                     }

@@ -101,7 +101,7 @@ public class QueueMetricCollectorTest {
 
 
         String metricPrefix = "Custom Metrics|EMS";
-        QueueMetricCollector queueMetricCollector = new QueueMetricCollector(tibjmsAdmin, Lists.newArrayList(includeAllPattern), false, false,
+        QueueMetricCollector queueMetricCollector = new QueueMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeAllPattern), false, false, false,
                 metrics, metricPrefix, phaser, collectedMetrics);
         queueMetricCollector.run();
 
@@ -180,7 +180,7 @@ public class QueueMetricCollectorTest {
 
 
         String metricPrefix = "Custom Metrics|EMS";
-        QueueMetricCollector queueMetricCollector = new QueueMetricCollector(tibjmsAdmin, Lists.newArrayList(includeOnlyQueue1Pattern), false, false,
+        QueueMetricCollector queueMetricCollector = new QueueMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeOnlyQueue1Pattern), false, false, false,
                 metrics, metricPrefix, phaser, collectedMetrics);
         queueMetricCollector.run();
 

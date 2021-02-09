@@ -96,7 +96,7 @@ public class RouteMetricCollectorTest {
         when(outboundStatData2.getMessageRate()).thenReturn(25l);
         when(outboundStatData2.getTotalMessages()).thenReturn(250l);
 
-        RouteMetricCollector routeMetricCollector = new RouteMetricCollector(tibjmsAdmin, Lists.newArrayList(includeAllPattern), false, false, metrics, metricPrefix,
+        RouteMetricCollector routeMetricCollector = new RouteMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeAllPattern), false, false, false, metrics, metricPrefix,
                 phaser, collectedMetrics);
 
         routeMetricCollector.run();
@@ -171,7 +171,7 @@ public class RouteMetricCollectorTest {
         when(outboundStatData2.getMessageRate()).thenReturn(25l);
         when(outboundStatData2.getTotalMessages()).thenReturn(250l);
 
-        RouteMetricCollector routeMetricCollector = new RouteMetricCollector(tibjmsAdmin, Lists.newArrayList(includeOnlyRoute1Pattern), false, false, metrics, metricPrefix,
+        RouteMetricCollector routeMetricCollector = new RouteMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeOnlyRoute1Pattern), false, false, false, metrics, metricPrefix,
                 phaser, collectedMetrics);
 
         routeMetricCollector.run();

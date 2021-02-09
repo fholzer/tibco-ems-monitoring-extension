@@ -9,17 +9,18 @@
 package com.appdynamics.extensions.tibco.collectors;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
-import com.appdynamics.extensions.tibco.TibcoEMSMetricFetcher;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache.DestinationType;
 import com.appdynamics.extensions.tibco.metrics.Metric;
 import com.appdynamics.extensions.tibco.metrics.Metrics;
 import com.google.common.base.Strings;
 import com.tibco.tibjms.admin.TibjmsAdmin;
-import com.tibco.tibjms.admin.TibjmsAdminException;
 import com.tibco.tibjms.admin.TopicInfo;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Phaser;
@@ -34,8 +35,8 @@ public class TopicMetricCollector extends AbstractMetricCollector {
     private List<com.appdynamics.extensions.metrics.Metric> collectedMetrics;
 
 
-    public TopicMetricCollector(TibjmsAdmin conn, List<Pattern> includePatterns, boolean showSystem, boolean showTemp, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics) {
-        super(conn, includePatterns, showSystem, showTemp, metrics, metricPrefix);
+    public TopicMetricCollector(TibjmsAdmin conn, TibcoEMSDestinationCache destinationCache, List<Pattern> includePatterns, boolean showSystem, boolean showTemp, boolean showDynamic, Metrics metrics, String metricPrefix, Phaser phaser, List<com.appdynamics.extensions.metrics.Metric> collectedMetrics) {
+        super(conn, destinationCache, includePatterns, showSystem, showTemp, showDynamic, metrics, metricPrefix);
         this.phaser = phaser;
         this.phaser.register();
         this.collectedMetrics = collectedMetrics;
@@ -48,21 +49,16 @@ public class TopicMetricCollector extends AbstractMetricCollector {
         }
 
         try {
-            TopicInfo[] topicInfos = conn.getTopicsStatistics();
+            Collection<TopicInfo> topicInfos = destinationCache.getAllTopics();
 
-            if (topicInfos == null) {
-                logger.warn("Unable to get topic statistics");
-            } else {
-                for (TopicInfo topicInfo : topicInfos) {
-                    if (shouldMonitorDestination(topicInfo.getName(), includePatterns, showSystem, showTemp, TibcoEMSMetricFetcher.DestinationType.TOPIC, logger)) {
-                        logger.info("Publishing metrics for topic " + topicInfo.getName());
-                        List<com.appdynamics.extensions.metrics.Metric> topicInfoMetrics = getTopicInfo(topicInfo, metrics);
-                        collectedMetrics.addAll(topicInfoMetrics);
-                    }
+            for (TopicInfo topicInfo : topicInfos) {
+                if(topicInfo.isStatic() || showDynamic)
+                if (topicInfo.isStatic() || showDynamic && shouldMonitorDestination(topicInfo.getName(), DestinationType.TOPIC, logger)) {
+                    logger.info("Publishing metrics for topic " + topicInfo.getName());
+                    List<com.appdynamics.extensions.metrics.Metric> topicInfoMetrics = getTopicInfo(topicInfo, metrics);
+                    collectedMetrics.addAll(topicInfoMetrics);
                 }
             }
-        } catch (TibjmsAdminException e) {
-            logger.error("Error while collecting topic metrics", e);
         } finally {
             logger.debug("TopicMetricCollector Phaser arrived");
             phaser.arriveAndDeregister();

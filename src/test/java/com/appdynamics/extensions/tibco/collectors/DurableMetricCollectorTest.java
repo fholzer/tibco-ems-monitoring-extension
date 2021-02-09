@@ -85,7 +85,7 @@ public class DurableMetricCollectorTest {
         when(durableInfo2.getPendingMessageSize()).thenReturn(2000l);
 
 
-        DurableMetricCollector durableMetricCollector = new DurableMetricCollector(tibjmsAdmin, Lists.newArrayList(includeAllPattern), false, false, metrics,
+        DurableMetricCollector durableMetricCollector = new DurableMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeAllPattern), false, false, false, metrics,
                 metricPrefix, phaser, collectedMetrics, queueTopicMetricPrefixes);
         durableMetricCollector.run();
 
@@ -144,7 +144,7 @@ public class DurableMetricCollectorTest {
         when(durableInfo2.getPendingMessageSize()).thenReturn(2000l);
 
 
-        DurableMetricCollector durableMetricCollector = new DurableMetricCollector(tibjmsAdmin, Lists.newArrayList(includeOnlyDurable1Pattern), false, false, metrics,
+        DurableMetricCollector durableMetricCollector = new DurableMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeOnlyDurable1Pattern), false, false, false, metrics,
                 metricPrefix, phaser, collectedMetrics, queueTopicMetricPrefixes);
         durableMetricCollector.run();
 

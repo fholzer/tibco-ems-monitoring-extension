@@ -68,6 +68,8 @@ public class Metrics {
         private String showTemp;
         @XmlAttribute
         private String showSystem;
+        @XmlAttribute
+        private String showDynamic;
 
         @XmlElement(name = "metrics")
         private Metrics[] metrics;
@@ -87,6 +89,14 @@ public class Metrics {
 
         public void setShowSystem(String showSystem) {
             this.showSystem = showSystem;
+        }
+
+        public Boolean isShowDynamic() {
+            return Boolean.valueOf(showDynamic);
+        }
+
+        public void setShowDynamic(String showDynamic) {
+            this.showDynamic = showDynamic;
         }
 
         public Metrics[] getMetrics() {

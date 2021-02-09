@@ -94,7 +94,7 @@ public class ConsumerMetricCollectorTest {
         when(statData2.getTotalMessages()).thenReturn(200l);
         when(statData2.getTotalBytes()).thenReturn(2000l);
 
-        ConsumerMetricCollector consumerMetricCollector = new ConsumerMetricCollector(tibjmsAdmin, Lists.newArrayList(includeAllPattern), false, false, metrics, metricPrefix,
+        ConsumerMetricCollector consumerMetricCollector = new ConsumerMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeAllPattern), false, false, false, metrics, metricPrefix,
                 phaser, collectedMetrics, queueTopicMetricPrefixes, displayDynamicIdsInMetricPath);
         consumerMetricCollector.run();
 
@@ -159,7 +159,7 @@ public class ConsumerMetricCollectorTest {
         when(statData2.getTotalMessages()).thenReturn(200l);
         when(statData2.getTotalBytes()).thenReturn(2000l);
 
-        ConsumerMetricCollector consumerMetricCollector = new ConsumerMetricCollector(tibjmsAdmin, Lists.newArrayList(includeOnlyQueue1Pattern), false, false, metrics, metricPrefix,
+        ConsumerMetricCollector consumerMetricCollector = new ConsumerMetricCollector(tibjmsAdmin, null, Lists.newArrayList(includeOnlyQueue1Pattern), false, false, false, metrics, metricPrefix,
                 phaser, collectedMetrics, queueTopicMetricPrefixes, displayDynamicIdsInMetricPath);
         consumerMetricCollector.run();
 

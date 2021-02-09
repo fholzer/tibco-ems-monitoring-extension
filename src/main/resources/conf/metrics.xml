@@ -16,7 +16,7 @@ clusterRollUpType = INDIVIDUAL | COLLECTIVE
 Set delta = true for metric to report per-min data
 -->
 
-<emsMetrics showTemp="false" showSystem="false">
+<emsMetrics showTemp="false" showSystem="false" showDynamic="false">
     <metrics type="Server" enabled="true">
         <metric attr="AsyncDBSize" aggregationType="OBSERVATION" timeRollUpType="CURRENT"
                 clusterRollUpType="COLLECTIVE"/>

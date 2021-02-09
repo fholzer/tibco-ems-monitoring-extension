@@ -61,7 +61,7 @@ public class ServerMetricCollectorTest {
         when(serverInfo.getQueueCount()).thenReturn(15);
         when(serverInfo.getTopicCount()).thenReturn(25);
 
-        ServerMetricCollector serverMetricCollector = new ServerMetricCollector(tibjmsAdmin, false, false, metrics, metricPrefix,
+        ServerMetricCollector serverMetricCollector = new ServerMetricCollector(tibjmsAdmin, null, false, false, false, metrics, metricPrefix,
                 phaser, collectedMetrics);
         serverMetricCollector.run();
 

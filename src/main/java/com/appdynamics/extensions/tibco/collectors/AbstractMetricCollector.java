@@ -8,9 +8,11 @@
 
 package com.appdynamics.extensions.tibco.collectors;
 
-import com.appdynamics.extensions.tibco.TibcoEMSMetricFetcher;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache;
+import com.appdynamics.extensions.tibco.TibcoEMSDestinationCache.DestinationType;
 import com.appdynamics.extensions.tibco.metrics.Metrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tibco.tibjms.admin.DestinationInfo;
 import com.tibco.tibjms.admin.TibjmsAdmin;
 import org.slf4j.Logger;
 
@@ -27,43 +29,59 @@ public abstract class AbstractMetricCollector implements Runnable {
     List<Pattern> includePatterns;
     boolean showSystem;
     boolean showTemp;
+    boolean showDynamic;
     Metrics metrics;
     String metricPrefix;
+    TibcoEMSDestinationCache destinationCache;
 
     protected static ObjectMapper objectMapper = new ObjectMapper();
 
 
-    public AbstractMetricCollector(TibjmsAdmin conn, List<Pattern> includePatterns, boolean showSystem,
-                                   boolean showTemp, Metrics metrics, String metricPrefix) {
+    public AbstractMetricCollector(TibjmsAdmin conn, TibcoEMSDestinationCache dcache, List<Pattern> includePatterns, boolean showSystem,
+                                   boolean showTemp, boolean showDynamic, Metrics metrics, String metricPrefix) {
         this.conn = conn;
+        this.destinationCache = dcache;
         this.includePatterns = includePatterns;
         this.showSystem = showSystem;
         this.showTemp = showTemp;
+        this.showDynamic = showDynamic;
         this.metrics = metrics;
         this.metricPrefix = metricPrefix;
     }
 
-    boolean shouldMonitorDestination(String destName, List<Pattern> patternsToInclude, boolean showSystem, boolean showTemp, TibcoEMSMetricFetcher.DestinationType destinationType, Logger logger) {
+    boolean shouldMonitorDestination(String destName, TibcoEMSDestinationCache.DestinationType destinationType, Logger logger) {
+        return shouldMonitorDestination(destName, includePatterns, showSystem, showTemp, showDynamic, destinationType, logger);
+    }
 
-        logger.debug("Checking includes and excludes for " + destinationType.getType() + " with name " + destName);
+    boolean shouldMonitorDestination(String destName, List<Pattern> includePatterns, boolean showSystem, boolean showTemp, boolean showDynamic, DestinationType destinationType, Logger logger) {
+
+        logger.info("Checking includes and excludes for " + destinationType.getType() + " with name " + destName);
 
         try {
             if (destName.startsWith("$TMP$.") && !showTemp) {
-                logger.debug("Skipping temporary " + destinationType.getType() + " '" + destName + "'");
+                logger.info("Skipping temporary " + destinationType.getType() + " '" + destName + "'");
                 return false;
             }
 
             if (destName.startsWith("$sys.") && !showSystem) {
-                logger.debug("Skipping system " + destinationType.getType() + " '" + destName + "'");
+                logger.info("Skipping system " + destinationType.getType() + " '" + destName + "'");
                 return false;
             }
 
-            if (patternsToInclude != null && patternsToInclude.size() > 0) {
-                logger.debug("Using patterns to include [" + patternsToInclude + "] to filter");
-                for (Pattern patternToInclude : patternsToInclude) {
+            if(destinationType != null && destinationCache != null) {
+                DestinationInfo di = destinationCache.get(destName, destinationType);
+                if(!di.isStatic() && !showDynamic) {
+                    logger.info("Skipping dynamic " + destinationType.getType() + " '" + destName);
+                    return false;
+                }
+            }
+
+            if (includePatterns != null && includePatterns.size() > 0) {
+                logger.info("Using patterns to include [" + includePatterns + "] to filter");
+                for (Pattern patternToInclude : includePatterns) {
                     Matcher matcher = patternToInclude.matcher(destName);
                     if (matcher.matches()) {
-                        logger.debug(String.format("Including '%s' '%s' due to include pattern '%s'",
+                        logger.info(String.format("Including '%s' '%s' due to include pattern '%s'",
                                 destinationType.getType(), destName, patternToInclude.pattern()));
                         return true;
                     }
@@ -71,7 +89,7 @@ public abstract class AbstractMetricCollector implements Runnable {
             }
             return false;
         } catch (Exception e) {
-            logger.debug("Error in checking includes and excludes for  " + destinationType.getType() + " with name " + destName);
+            logger.info("Error in checking includes and excludes for  " + destinationType.getType() + " with name " + destName);
             return false;
         }
     }
